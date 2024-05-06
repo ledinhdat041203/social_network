@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login Page</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+      integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+      crossorigin="anonymous"
+    />
+    <link href="style/style2.css" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="user-box">
+        <div>
+          <center>
+            <img
+              src="../src/images/Logo1.png"
+              height="64em"
+              style="margin-bottom: 2vh"
+            />
+            <h3>Log in to Network</h3>
+            <br />
+          </center>
+        </div>
+
+        <form
+          action="{% url 'login' %}"
+          method="post"
+          id="signin-form"
+          style="width: 100%; margin-bottom: 5vh"
+        >
+          <div class="form-group">
+            <input
+              class="form-control inp usrnm"
+              type="text"
+              name="email"
+              placeholder="email"
+              autocomplete="off"
+              autofocus
+            />
+          </div>
+          <div class="form-group">
+            <input
+              class="form-control inp pswd"
+              type="password"
+              name="password"
+              placeholder="Password"
+              autocomplete="off"
+            />
+          </div>
+          <center>
+            <input
+              class="btn btn-primary"
+              type="submit"
+              value="Log in"
+              style="margin-top: 10px; width: 95%"
+              disabled
+            />
+          </center>
+        </form>
+
+        <div>
+          <center>
+            Don't have an account?&nbsp;&nbsp;<a href="{% url 'register' %}"
+              >Sign Up</a
+            >
+          </center>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
