@@ -144,7 +144,7 @@ def findSavePost(page, userid):
                 "OPTIONAL MATCH (u1)-[r:like_at]->(p) " \
                 "RETURN p.id as id, p.imageUrl as imageUrl, p.text as text, p.time as time, p.likesCount as likesCount, p.commentsCount as commentsCount, "\
                 "CASE WHEN r IS NULL THEN FALSE ELSE TRUE END AS liked, u2.fullname as fullname, u2.profileImageUrl as avata  "\
-                "ORDER BY p.time DESC skip $skip  limit $pagesize"
+                "ORDER BY p.time DESC skip $skip  limit $pagesize"  
         try:
             result = session.run(query,id = userid,skip=skip, pagesize = PAGESIZE)
             return result.data()
