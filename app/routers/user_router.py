@@ -16,7 +16,7 @@ async def login(data: User):
     if user_service.login(email, password):
         print('ok')
         id = user_service.findIDByEmail(email)
-        access_token_expires = timedelta(minutes=30)
+        access_token_expires = timedelta(minutes=300)
         access_token = create_access_token({"id": id}, access_token_expires)
         print(access_token)
         return {"message": "Login successful!", "access_token": access_token, "status": 200}
@@ -86,6 +86,12 @@ async def profile(userid: str):
     data = user_service.profile(userid=userid)
     if (data):
         return {"message": "successfully", "data": data, "status": 200}
+    else:
+        return {"message": "Failed", "status": 400}
+@router.post("/editprofile")
+async def editProfile(user: User, current_userid: str = Depends(get_current_userid)):
+    if (user_service.editProfile(user=user, user_id=current_userid)):
+        return {"message": "successfully", "status": 200}
     else:
         return {"message": "Failed", "status": 400}
 

@@ -10,7 +10,7 @@ def findIDByEmail(email):
                 "MATCH (u:User {email: $email}) RETURN u",
                 email=email)
             record = result.single()
-            print(record)
+
             if record:
                 return record["u"]["id"]
             else:
@@ -141,12 +141,36 @@ def profile(userid):
         query = "MATCH (u:User {id: $id}) "\
                 "OPTIONAL MATCH (u)-[:FOLLOWS]->(following:User) "\
                 "OPTIONAL MATCH (followers:User)-[:FOLLOWS]->(u) "\
-                "RETURN u.id as id, u.fullname as fullname, u.phone as phone, u.city as city, u.country as country,u.profileImageUrl as avata, "\
+                "RETURN u.id as id, u.fullname as fullname, u.phone as phone, u.city as city, "\
+                "u.country as country,u.profileImageUrl as avata, u.gender as gender, u.birthday as birthday, "\
                 "COUNT(following) AS following, COUNT(followers) AS followers"
         try:
             result = session.run(query, id = userid)
             return result.data()
         except Exception as e:
             print(e)
+
+def editProfile(user, user_id):
+    neo4j = Neo4jConnector()
+    with neo4j.get_session() as session:
+        query = "MATCH (p:User {id : $user_id}) " \
+                "set p.fullname = $fullname, p.gender = $gender, p.city = $city, "\
+                "p.country = $country, p.phone = $phone, p.profileImageUrl = $avata"
+        try:
+            session.run(query, {
+                "user_id": user_id,
+                "fullname": user.fullname,
+                "gender": user.gender,
+                "phone": user.phone,
+                "birthday": user.birthday,
+                "city": user.city,
+                "country": user.country,
+                "avata": user.profileImageUrl
+            })
+            return True
+        except Exception as e:
+            print(e)
+            return False
+
 
         

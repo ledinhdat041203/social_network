@@ -34,7 +34,7 @@ def exists_like(userid, postid):
         result = session.run(query,userid=userid, postid = postid)
         record = result.single()
         return True if record else False
-    
+        
 def quit_like(userid, postid):
     neo4j = Neo4jConnector()
     with neo4j.get_session() as session:
