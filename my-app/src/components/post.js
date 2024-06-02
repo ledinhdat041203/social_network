@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import logo from "../assets/images/Logo1.png";
 import { likePostApi } from "../services/userService";
 import Comment from "./comment";
@@ -19,6 +19,7 @@ const Post = ({
   time,
   fullname,
   avata,
+  saved,
 }) => {
   const [isLiked, setIsliked] = useState(liked);
   const [likeCountState, SetLikeCountState] = useState(likesCount);
@@ -28,7 +29,8 @@ const Post = ({
   const [listcmt, setListcmt] = useState([]);
   const [cmtcount, setCmtcount] = useState(commentsCount);
   const { user } = useContext(UserContext);
-  const [issaved, setIssaved] = useState(false);
+  const [issaved, setIssaved] = useState(saved);
+  const cmt_input_ref = useRef(null);
   const likeClick = async () => {
     setIsliked((prev) => !prev);
     if (!isLiked) SetLikeCountState(likeCountState + 1);
@@ -45,6 +47,9 @@ const Post = ({
       setFirstloadcmt(true);
     }
   };
+  useEffect(() => {
+    if (cmt_input_ref.current) cmt_input_ref.current.focus();
+  }, [show_comment]);
   const savepost = async () => {
     setIssaved(!issaved);
     const res = savepostApi(id);
@@ -60,7 +65,7 @@ const Post = ({
       const data = res.data.data[0];
       console.log("listcmt 1", listcmt);
       console.log(res.data);
-      setListcmt((prevListcmt) => [res.data, ...prevListcmt]);
+      setListcmt((prevListcmt) => [data, ...prevListcmt]);
       console.log("listcmt 2", listcmt);
     }
     setComment("");
@@ -329,6 +334,7 @@ const Post = ({
                       }}
                     >
                       <input
+                        ref={cmt_input_ref}
                         type="text"
                         name="comment"
                         className="comment-input"
