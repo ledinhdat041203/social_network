@@ -9,34 +9,38 @@ const Following = () => {
   const [listpost, setListpost] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isfistLoading, setIsfistloading] = useState(false);
+  const [title, setTitle] = useState("FOLLOWING");
 
   const currentPage = useRef(0);
   const { user } = useContext(UserContext);
 
   const fetchData = async () => {
     try {
+      setIsLoading(true);
       console.log("find page: ", currentPage.current);
       const res = await findPostFollowing(currentPage.current);
-      console.log(Array.isArray(res?.data?.data));
-      if (Array.isArray(res?.data?.data)) {
+      // console.log(Array.isArray(res?.data?.data));
+      if (res && res.data.status === 200 && Array.isArray(res?.data?.data)) {
         setListpost((prev) => [...prev, ...res?.data?.data]);
-        console.log("listpost", listpost);
+        currentPage.current += 1;
+        setIsLoading(false);
       } else {
         window.removeEventListener("scroll", handleScroll);
       }
     } catch (error) {
       console.error("Error fetching data:", error);
     }
-    currentPage.current += 1;
-    setIsLoading(false);
   };
-  console.log("isLoading", isLoading);
   const handleScroll = () => {
+    console.log("current load:", isLoading);
+
     if (
-      window.innerHeight + window.scrollY >= document.body.scrollHeight &&
+      window.innerHeight + window.scrollY >= document.body.scrollHeight - 10 &&
       !isLoading
     ) {
-      setIsLoading(true);
+      // setIsLoading(true);
+      fetchData();
+      console.log("load");
     }
   };
   useEffect(() => {
@@ -54,14 +58,9 @@ const Following = () => {
     window.addEventListener("scroll", handleScroll);
     return () => {
       window.removeEventListener("scroll", handleScroll);
+      console.log("remove");
     };
   }, [user]);
-
-  useEffect(() => {
-    if (isLoading) {
-      fetchData();
-    }
-  }, [isLoading]);
 
   return (
     <>

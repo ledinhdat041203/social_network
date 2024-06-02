@@ -6,7 +6,8 @@ PAGESIZE = 4
 def create_post(post, id):
         neo4j = Neo4jConnector()
         post.id = str(uuid.uuid4())
-        time = str(datetime.now().strftime("%Y-%m-%d %H:%M"))
+        time = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        post.time = time
         with neo4j.get_session() as session:
             query = "MATCH (u:User) WHERE u.id = $user_id\n" \
                    "CREATE (u)-[r:UPLOADS]->(p:Post {id: $id, text: $text, imageUrl: $imageURL, time: $time, likesCount: 0, commentsCount: 0}) "
@@ -69,9 +70,12 @@ def findAllPostPage(page, id):
     with neo4j.get_session() as session:
         query = "match (p:Post)"\
                 "match (u:User) -[l:UPLOADS]->(p)"\
-                "OPTIONAL MATCH (u2:User {id: $id})-[r:like_at]->(p)"\
+                "MATCH (u2:User {id: $id}) "\
+                "OPTIONAL MATCH (u2)-[r:like_at]->(p) "\
+                "OPTIONAL MATCH (u2)-[s:save_at]->(p) "\
                 "RETURN p.id as id, p.imageUrl as imageUrl, p.text as text, p.time as time, p.likesCount as likesCount, p.commentsCount as commentsCount, "\
-                "CASE WHEN r IS NULL THEN FALSE ELSE TRUE END AS liked, u.fullname as fullname, u.profileImageUrl as avata "\
+                "CASE WHEN r IS NULL THEN FALSE ELSE TRUE END AS liked, u.fullname as fullname, u.profileImageUrl as avata,"\
+                "CASE WHEN s IS NULL THEN FALSE ELSE TRUE END AS saved "\
                 "ORDER BY p.time DESC skip $skip  limit $pagesize"
         try:
             result = session.run(query,id = id,skip=skip, pagesize = PAGESIZE)
@@ -87,8 +91,10 @@ def findPostFollowing(page, id):
                 "Match (u1) -[f:FOLLOWS]-> (u2:User) "\
                 "Match (u2) -[up:UPLOADS]->(p:Post) "\
                 "OPTIONAL MATCH (u1)-[r:like_at]->(p) "\
+                "OPTIONAL MATCH (u1)-[s:save_at]->(p) "\
                 "RETURN p.id as id, p.imageUrl as imageUrl, p.text as text, p.time as time, p.likesCount as likesCount, p.commentsCount as commentsCount, "\
-                "CASE WHEN r IS NULL THEN FALSE ELSE TRUE END AS liked, u2.fullname as fullname, u2.profileImageUrl as avata "\
+                "CASE WHEN r IS NULL THEN FALSE ELSE TRUE END AS liked, u2.fullname as fullname, u2.profileImageUrl as avata, "\
+                "CASE WHEN s IS NULL THEN FALSE ELSE TRUE END AS saved "\
                 "ORDER BY p.time DESC skip $skip  limit $pagesize"
         try:
             result = session.run(query,id = id,skip=skip, pagesize = PAGESIZE)
@@ -143,7 +149,8 @@ def findSavePost(page, userid):
                 "Match (u2) -[up:UPLOADS]->(p) "\
                 "OPTIONAL MATCH (u1)-[r:like_at]->(p) " \
                 "RETURN p.id as id, p.imageUrl as imageUrl, p.text as text, p.time as time, p.likesCount as likesCount, p.commentsCount as commentsCount, "\
-                "CASE WHEN r IS NULL THEN FALSE ELSE TRUE END AS liked, u2.fullname as fullname, u2.profileImageUrl as avata  "\
+                "CASE WHEN r IS NULL THEN FALSE ELSE TRUE END AS liked, u2.fullname as fullname, u2.profileImageUrl as avata,  "\
+                "CASE WHEN s IS NULL THEN FALSE ELSE TRUE END AS saved "\
                 "ORDER BY p.time DESC skip $skip  limit $pagesize"  
         try:
             result = session.run(query,id = userid,skip=skip, pagesize = PAGESIZE)
@@ -158,8 +165,10 @@ def findMyPost(page, id):
         query = "Match (u1:User {id: $id}) "\
                 "Match (u1) -[up:UPLOADS]->(p:Post) "\
                 "OPTIONAL MATCH (u1)-[r:like_at]->(p) "\
+                "OPTIONAL MATCH (u1)-[s:save_at]->(p) "\
                 "RETURN p.id as id, p.imageUrl as imageUrl, p.text as text, p.time as time, p.likesCount as likesCount, p.commentsCount as commentsCount, "\
-                "CASE WHEN r IS NULL THEN FALSE ELSE TRUE END AS liked, u1.fullname as fullname, u1.profileImageUrl as avata "\
+                "CASE WHEN r IS NULL THEN FALSE ELSE TRUE END AS liked, u1.fullname as fullname, u1.profileImageUrl as avata, "\
+                "CASE WHEN s IS NULL THEN FALSE ELSE TRUE END AS saved "\
                 "ORDER BY p.time DESC skip $skip  limit $pagesize"
         try:
             result = session.run(query,id = id,skip=skip, pagesize = PAGESIZE)

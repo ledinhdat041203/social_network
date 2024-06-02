@@ -126,9 +126,10 @@ def suggestionUser(userid):
 def savepost(userid, postid):
     neo4j = Neo4jConnector()
     with neo4j.get_session() as session:
+
         query = "Match (u:User {id: $userid}) "\
                 "Match (p:Post {id: $postid}) "\
-                "Create (u) -[r:save_at]-> (p)"
+                "MERGE (u)-[r:save_at]->(p)"
         try:
             session.run(query, userid=userid, postid = postid)
             return True
@@ -140,10 +141,12 @@ def profile(userid):
     with neo4j.get_session() as session:
         query = "MATCH (u:User {id: $id}) "\
                 "OPTIONAL MATCH (u)-[:FOLLOWS]->(following:User) "\
+                "WITH u, COUNT(following) AS followingCount "\
                 "OPTIONAL MATCH (followers:User)-[:FOLLOWS]->(u) "\
+                "With u, followingCount, COUNT(followers) as followerCount "\
                 "RETURN u.id as id, u.fullname as fullname, u.phone as phone, u.city as city, "\
                 "u.country as country,u.profileImageUrl as avata, u.gender as gender, u.birthday as birthday, "\
-                "COUNT(following) AS following, COUNT(followers) AS followers"
+                "followingCount AS following, followerCount AS followers"
         try:
             result = session.run(query, id = userid)
             return result.data()
