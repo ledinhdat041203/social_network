@@ -9,7 +9,7 @@ import { createPostApi } from "../services/userService";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import Newsfeed from "./newsfeed";
-import Suggestion_user from "./suggestion_user";
+import SuggestionUser from "./suggestion_user";
 import { suggestionUserApi } from "../services/userService";
 import Following from "./following";
 import Savepost from "./savepost";
@@ -19,7 +19,7 @@ const Home = () => {
   const [imgpost, setImgpost] = useState("");
   const [textpost, setTextpost] = useState("");
   const { user, logout } = useContext(UserContext);
-  const [isLoadinfo, setIsloafinfo] = useState(true);
+  // const [isLoadinfo, setIsloafinfo] = useState(true);
   const [listsugges, setListsugges] = useState([]);
   const [currentPage, setCurrenPage] = useState(1);
   const navigate = useNavigate();
@@ -71,6 +71,13 @@ const Home = () => {
   useEffect(() => {
     console.log("currentPage", currentPage);
   }, [currentPage]);
+
+  const goToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
   return (
     <>
       <div className="popup">
@@ -262,7 +269,15 @@ const Home = () => {
       </div>
       <div className="body" data-page="{{page}}">
         <div className="sidenav">
-          <a href="{% url 'index' %}" className="navbar-brand">
+          <a
+            href="#"
+            className="navbar-brand"
+            onClick={(e) => {
+              e.preventDefault();
+              setCurrenPage(1);
+              goToTop();
+            }}
+          >
             <img src={logo} height="31px" alt="" />
           </a>
           <div style={{ height: "100%" }}>
@@ -572,7 +587,7 @@ const Home = () => {
               {listsugges.length !== 0 ? (
                 <>
                   {listsugges.map((sugges, index) => {
-                    return <Suggestion_user key={sugges.id} {...sugges} />;
+                    return <SuggestionUser key={sugges.id} {...sugges} />;
                   })}
                   <div
                     style={{
@@ -618,14 +633,13 @@ const Home = () => {
       </div>
       {currentPage === 1 ? (
         <Newsfeed />
-      ) : currentPage == 2 ? (
+      ) : currentPage === 2 ? (
         <Following />
       ) : currentPage === 3 ? (
         <Savepost />
       ) : (
         <Profile user_id={user.id} />
       )}
-      {/* <Newsfeed /> */}
     </>
   );
 };

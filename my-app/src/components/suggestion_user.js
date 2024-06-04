@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { followsApi } from "../services/userService";
 import { toast } from "react-toastify";
 
-const Suggestion_user = ({ id, fullname, avata }) => {
+const SuggestionUser = ({ id, fullname, avata }) => {
   const [followed, setFollowed] = useState(false);
   const follow_user = async () => {
     const res = followsApi(id);
@@ -54,4 +54,4 @@ const Suggestion_user = ({ id, fullname, avata }) => {
     </>
   );
 };
-export default Suggestion_user;
+export default SuggestionUser;
