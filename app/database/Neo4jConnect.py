@@ -1,8 +1,12 @@
 from neo4j import GraphDatabase
+from dotenv import load_dotenv
+import os
 
-URI = "bolt://localhost:7687"
-USERNAME = "neo4j"
-PWD = "socialnetwork"
+load_dotenv()
+
+URI = os.getenv("URI")
+USERNAME = os.getenv("USER_NAME")
+PWD = os.getenv("PWD")
 
 class Neo4jConnector:
     def __init__(self, uri = URI, user = USERNAME, password = PWD):
