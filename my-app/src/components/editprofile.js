@@ -19,14 +19,11 @@ const EditProfile = ({ user_id, onSignal }) => {
   const [phone, setPhone] = useState("");
   const [mail, setMail] = useState("");
   const [password, setPassword] = useState("");
-  const [cfmpass, setCfmpass] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadimg, setLoadimg] = useState(false);
   const [imgsuccess, setImgsuccess] = useState(false);
-  const [dummyState, setDummyState] = useState(0);
 
   const [avata, setAvata] = useState("");
-  const [coverimg, setCoverimg] = useState("");
 
   const handleEdit = async () => {
     setLoading(true);
@@ -72,7 +69,6 @@ const EditProfile = ({ user_id, onSignal }) => {
       })
       .catch((error) => {
         console.error("Error handling file change:", error);
-        // Handle error if necessary
       });
   };
 

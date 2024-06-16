@@ -91,6 +91,10 @@ const editProfileApi = (
     profileImageUrl,
   });
 };
+
+const editPostAPI = (id, text, imageURL) => {
+  return axios.post("/post/eidtPost", { id, text, imageURL });
+};
 export {
   loginApi,
   registerApi,
@@ -108,4 +112,5 @@ export {
   profileApi,
   findMyPostApi,
   editProfileApi,
+  editPostAPI,
 };

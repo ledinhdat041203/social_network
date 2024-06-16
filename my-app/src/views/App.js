@@ -5,7 +5,7 @@ import Signup from "../components/Signup";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Routes, Route } from "react-router-dom";
-import EditProfile from "../components/editprofile";
+// import EditProfile from "../components/editprofile";
 
 function App() {
   return (

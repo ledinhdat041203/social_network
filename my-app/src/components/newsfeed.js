@@ -2,7 +2,7 @@ import "../styles/style_Newsfeed.css";
 import React, { useEffect, useRef, useState } from "react";
 import Post from "./post";
 import { findAllPostPageApi } from "../services/userService";
-import { UserContext } from "../context/UserContext";
+import { UserContext } from "../store/UserContext";
 import { useContext } from "react";
 
 const Newsfeed = () => {
@@ -19,7 +19,6 @@ const Newsfeed = () => {
       setIsLoading(true);
       console.log("find page: ", currentPage.current);
       const res = await findAllPostPageApi(currentPage.current);
-      // console.log(Array.isArray(res?.data?.data));
       if (res && res.data.status === 200 && Array.isArray(res?.data?.data)) {
         setListpost((prev) => [...prev, ...res?.data?.data]);
         currentPage.current += 1;
@@ -32,8 +31,6 @@ const Newsfeed = () => {
     }
   };
   const handleScroll = () => {
-    console.log("current load:", isLoading);
-
     if (
       window.innerHeight + window.scrollY >= document.body.scrollHeight - 10 &&
       !isLoading
@@ -76,7 +73,6 @@ const Newsfeed = () => {
           <nav className="head heading">{title}</nav>
           <div className="left-div-content">
             <div className="posts-view">
-              {/* {% block profile %} {% endblock %} */}
               <div className="main-div-content">
                 {listpost.map((post, index) => {
                   return <Post key={post.id} {...post} />;

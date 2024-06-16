@@ -2,7 +2,7 @@ import "../styles/style_Newsfeed.css";
 import React, { useEffect, useRef, useState } from "react";
 import Post from "./post";
 import { findPostFollowing } from "../services/userService";
-import { UserContext } from "../context/UserContext";
+import { UserContext } from "../store/UserContext";
 import { useContext } from "react";
 
 const Following = () => {
