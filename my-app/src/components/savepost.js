@@ -2,7 +2,7 @@ import "../styles/style_Newsfeed.css";
 import React, { useEffect, useRef, useState } from "react";
 import Post from "./post";
 import { findsavepost } from "../services/userService";
-import { UserContext } from "../context/UserContext";
+import { UserContext } from "../store/UserContext";
 import { useContext } from "react";
 
 const Savepost = () => {
@@ -31,8 +31,6 @@ const Savepost = () => {
     }
   };
   const handleScroll = () => {
-    console.log("current load:", isLoading);
-
     if (
       window.innerHeight + window.scrollY >= document.body.scrollHeight - 10 &&
       !isLoading

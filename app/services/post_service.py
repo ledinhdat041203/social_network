@@ -74,7 +74,7 @@ def findAllPostPage(page, id):
                 "OPTIONAL MATCH (u2)-[r:like_at]->(p) "\
                 "OPTIONAL MATCH (u2)-[s:save_at]->(p) "\
                 "RETURN p.id as id, p.imageUrl as imageUrl, p.text as text, p.time as time, p.likesCount as likesCount, p.commentsCount as commentsCount, "\
-                "CASE WHEN r IS NULL THEN FALSE ELSE TRUE END AS liked, u.fullname as fullname, u.profileImageUrl as avata,"\
+                "CASE WHEN r IS NULL THEN FALSE ELSE TRUE END AS liked, u.id as postUserId, u.fullname as fullname, u.profileImageUrl as avata,"\
                 "CASE WHEN s IS NULL THEN FALSE ELSE TRUE END AS saved "\
                 "ORDER BY p.time DESC skip $skip  limit $pagesize"
         try:
@@ -93,7 +93,7 @@ def findPostFollowing(page, id):
                 "OPTIONAL MATCH (u1)-[r:like_at]->(p) "\
                 "OPTIONAL MATCH (u1)-[s:save_at]->(p) "\
                 "RETURN p.id as id, p.imageUrl as imageUrl, p.text as text, p.time as time, p.likesCount as likesCount, p.commentsCount as commentsCount, "\
-                "CASE WHEN r IS NULL THEN FALSE ELSE TRUE END AS liked, u2.fullname as fullname, u2.profileImageUrl as avata, "\
+                "CASE WHEN r IS NULL THEN FALSE ELSE TRUE END AS liked, u2.id as postUserId, u2.fullname as fullname, u2.profileImageUrl as avata, "\
                 "CASE WHEN s IS NULL THEN FALSE ELSE TRUE END AS saved "\
                 "ORDER BY p.time DESC skip $skip  limit $pagesize"
         try:
@@ -149,7 +149,7 @@ def findSavePost(page, userid):
                 "Match (u2) -[up:UPLOADS]->(p) "\
                 "OPTIONAL MATCH (u1)-[r:like_at]->(p) " \
                 "RETURN p.id as id, p.imageUrl as imageUrl, p.text as text, p.time as time, p.likesCount as likesCount, p.commentsCount as commentsCount, "\
-                "CASE WHEN r IS NULL THEN FALSE ELSE TRUE END AS liked, u2.fullname as fullname, u2.profileImageUrl as avata,  "\
+                "CASE WHEN r IS NULL THEN FALSE ELSE TRUE END AS liked, u2.id as postUserId, u2.fullname as fullname, u2.profileImageUrl as avata,  "\
                 "CASE WHEN s IS NULL THEN FALSE ELSE TRUE END AS saved "\
                 "ORDER BY p.time DESC skip $skip  limit $pagesize"  
         try:
@@ -167,11 +167,36 @@ def findMyPost(page, id):
                 "OPTIONAL MATCH (u1)-[r:like_at]->(p) "\
                 "OPTIONAL MATCH (u1)-[s:save_at]->(p) "\
                 "RETURN p.id as id, p.imageUrl as imageUrl, p.text as text, p.time as time, p.likesCount as likesCount, p.commentsCount as commentsCount, "\
-                "CASE WHEN r IS NULL THEN FALSE ELSE TRUE END AS liked, u1.fullname as fullname, u1.profileImageUrl as avata, "\
+                "CASE WHEN r IS NULL THEN FALSE ELSE TRUE END AS liked, u1.id as postUserId, u1.fullname as fullname, u1.profileImageUrl as avata, "\
                 "CASE WHEN s IS NULL THEN FALSE ELSE TRUE END AS saved "\
                 "ORDER BY p.time DESC skip $skip  limit $pagesize"
         try:
             result = session.run(query,id = id,skip=skip, pagesize = PAGESIZE)
+            return result.data()
+        except Exception as e:
+            print(e)
+def checkUserPost(userid, postid):
+    neo4j = Neo4jConnector()
+    with neo4j.get_session() as session:
+        query = "Match (p:Post {id: $postid}), (u:User {id: $userid}) "\
+                "Match (u) -[r:UPLOADS]-> (p) "\
+                "return r"
+        
+        try:
+            result = session.run(query,userid = userid,postid = postid)
+            if result.data():
+                return True
+            else: return False
+        except Exception as e:
+            print(e)
+def updatePost(post):
+    neo4j = Neo4jConnector()
+    with neo4j.get_session() as session:
+        query = "match (p:Post {id: $id}) "\
+                "set p.text = $text, p.imageUrl = $imageUrl "\
+                "return p"
+        try:
+            result = session.run(query,id = post.id,text=post.text, imageUrl = post.imageURL)
             return result.data()
         except Exception as e:
             print(e)

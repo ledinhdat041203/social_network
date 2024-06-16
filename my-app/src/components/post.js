@@ -4,10 +4,19 @@ import { likePostApi } from "../services/userService";
 import Comment from "./comment";
 import { commentApi } from "../services/userService";
 import { loadAllCmtApi } from "../services/userService";
-import { UserContext } from "../context/UserContext";
+import { UserContext } from "../store/UserContext";
 import { useContext } from "react";
 import { savepostApi } from "../services/userService";
 import { toast } from "react-toastify";
+import PostContext from "../store/PostContext";
+import { previewFile } from "../services/layout";
+import {
+  setTextPost,
+  setImgPost,
+  setOpenPopup,
+  setEditPost,
+  setIdPost,
+} from "../store/actions";
 
 const Post = ({
   id,
@@ -17,6 +26,7 @@ const Post = ({
   commentsCount,
   text,
   time,
+  postUserId,
   fullname,
   avata,
   saved,
@@ -31,6 +41,8 @@ const Post = ({
   const { user } = useContext(UserContext);
   const [issaved, setIssaved] = useState(saved);
   const cmt_input_ref = useRef(null);
+  const menuDropRef = useRef(null);
+  const [currentPost, dispatch] = useContext(PostContext);
   const likeClick = async () => {
     setIsliked((prev) => !prev);
     if (!isLiked) SetLikeCountState(likeCountState + 1);
@@ -47,9 +59,17 @@ const Post = ({
       setFirstloadcmt(true);
     }
   };
+
   useEffect(() => {
     if (cmt_input_ref.current) cmt_input_ref.current.focus();
   }, [show_comment]);
+
+  useEffect(() => {
+    if (menuDropRef.current) {
+      menuDropRef.current.style.display = "none";
+    }
+  }, []);
+
   const savepost = async () => {
     setIssaved(!issaved);
     const res = savepostApi(id);
@@ -69,6 +89,35 @@ const Post = ({
       console.log("listcmt 2", listcmt);
     }
     setComment("");
+  };
+
+  const drop_down = () => {
+    console.log(menuDropRef.current);
+    if (menuDropRef.current) {
+      menuDropRef.current.style.display = "block";
+    }
+  };
+  const remove_drop_down = (event) => {
+    if (
+      menuDropRef.current &&
+      !menuDropRef.current.contains(event.relatedTarget)
+    ) {
+      menuDropRef.current.style.display = "none";
+    }
+    console.log("remove drop down");
+  };
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  const edit_post = async () => {
+    menuDropRef.current.style.display = "none";
+    dispatch(setOpenPopup(true));
+    dispatch(setIdPost(id));
+    dispatch(setTextPost(text));
+    dispatch(setImgPost(imageUrl));
+    dispatch(setEditPost(true));
+    if (imageUrl != "") {
+      await sleep(10);
+      previewFile(imageUrl);
+    }
   };
 
   return (
@@ -102,65 +151,68 @@ const Post = ({
                 &nbsp;&nbsp;&nbsp;
                 <span className="grey">{time}</span>
               </div>
-              <div
-                className="dropdown"
-                style={{
-                  height: "1em",
-                  marginTop: "-3px",
-                  marginRight: "-3px",
-                }}
-              >
-                <button
-                  className="icon-btn dropdown-toggle"
-                  type="button"
-                  id="dropdownMenuButton"
-                  // onFocus="drop_down(event)"
-                  // onBlur="remove_drop_down(event)"
-                  // data-toggle="dropdown"
-                  aria-haspopup="true"
-                  aria-expanded="false"
-                >
-                  <svg
-                    width="1em"
-                    height="1em"
-                    viewBox="0 -2 16 16"
-                    className="bi bi-chevron-down"
-                    fill="currentColor"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"
-                    />
-                  </svg>
-                </button>
+              {user.id === postUserId ? (
                 <div
-                  className="dropdown-menu"
-                  aria-labelledby="dropdownMenuButton"
+                  className="dropdown"
+                  style={{
+                    height: "1em",
+                    marginTop: "-3px",
+                    marginRight: "-3px",
+                  }}
                 >
-                  {/* {% if post.creater == user %} */}
-                  <button className="dropdown-item" onClick="edit_post(this)">
+                  <button
+                    className="icon-btn dropdown-toggle"
+                    type="button"
+                    id="dropdownMenuButton"
+                    onFocus={drop_down}
+                    onBlur={remove_drop_down}
+                    data-toggle="dropdown"
+                    aria-haspopup="true"
+                    aria-expanded="false"
+                  >
                     <svg
-                      width="1.1em"
-                      height="1.1em"
-                      viewBox="0 0 16 16"
-                      className="bi bi-pencil"
+                      width="1em"
+                      height="1em"
+                      viewBox="0 -2 16 16"
+                      className="bi bi-chevron-down"
                       fill="currentColor"
                       xmlns="http://www.w3.org/2000/svg"
                     >
                       <path
                         fill-rule="evenodd"
-                        d="M11.293 1.293a1 1 0 0 1 1.414 0l2 2a1 1 0 0 1 0 1.414l-9 9a1 1 0 0 1-.39.242l-3 1a1 1 0 0 1-1.266-1.265l1-3a1 1 0 0 1 .242-.391l9-9zM12 2l2 2-9 9-3 1 1-3 9-9z"
-                      />
-                      <path
-                        fill-rule="evenodd"
-                        d="M12.146 6.354l-2.5-2.5.708-.708 2.5 2.5-.707.708zM3 10v.5a.5.5 0 0 0 .5.5H4v.5a.5.5 0 0 0 .5.5H5v.5a.5.5 0 0 0 .5.5H6v-1.5a.5.5 0 0 0-.5-.5H5v-.5a.5.5 0 0 0-.5-.5H3z"
+                        d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"
                       />
                     </svg>
-                    &nbsp;Edit post
                   </button>
+
+                  <div
+                    className="dropdown-menu"
+                    aria-labelledby="dropdownMenuButton"
+                    ref={menuDropRef}
+                  >
+                    <button className="dropdown-item" onClick={edit_post}>
+                      <svg
+                        width="1.1em"
+                        height="1.1em"
+                        viewBox="0 0 16 16"
+                        className="bi bi-pencil"
+                        fill="currentColor"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M11.293 1.293a1 1 0 0 1 1.414 0l2 2a1 1 0 0 1 0 1.414l-9 9a1 1 0 0 1-.39.242l-3 1a1 1 0 0 1-1.266-1.265l1-3a1 1 0 0 1 .242-.391l9-9zM12 2l2 2-9 9-3 1 1-3 9-9z"
+                        />
+                        <path
+                          fill-rule="evenodd"
+                          d="M12.146 6.354l-2.5-2.5.708-.708 2.5 2.5-.707.708zM3 10v.5a.5.5 0 0 0 .5.5H4v.5a.5.5 0 0 0 .5.5H5v.5a.5.5 0 0 0 .5.5H6v-1.5a.5.5 0 0 0-.5-.5H5v-.5a.5.5 0 0 0-.5-.5H3z"
+                        />
+                      </svg>
+                      &nbsp;Edit post
+                    </button>
+                  </div>
                 </div>
-              </div>
+              ) : null}
             </div>
 
             <div className="post-content">{text}</div>
@@ -229,7 +281,6 @@ const Post = ({
                   </div>
                 </>
               )}
-              {/* comment */}
 
               <div className="comment" onClick={show_comment}>
                 <div className="svg-span">

@@ -336,7 +336,6 @@ svg {
 }
 .dropdown-menu {
   padding: 0px;
-  overflow: hidden;
   box-shadow: rgba(101, 119, 134, 0.2) 0px 0px 15px,
     rgba(101, 119, 134, 0.15) 0px 0px 3px 1px;
   border: 0px;
@@ -686,7 +685,7 @@ svg {
 }
 
 .popup {
-  display: none;
+  display: block;
   position: fixed;
   width: 100vw;
   height: 100vh;
@@ -715,7 +714,7 @@ svg {
   animation-fill-mode: forwards;
 }
 .large-popup {
-  display: none;
+  display: block;
   position: absolute;
   top: 34px;
   left: 25%;

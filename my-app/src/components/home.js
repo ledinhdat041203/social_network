@@ -1,58 +1,34 @@
 import React, { useEffect, useState } from "react";
 import logo from "../assets/images/Logo1.png";
 import "../styles/style_home.css";
-import { createpost, remove_popup } from "../services/layout";
-import { UserContext } from "../context/UserContext";
+import { UserContext } from "../store/UserContext";
 import { useContext } from "react";
-import { uploadImageToStorage } from "../services/firebase_connect";
-import { createPostApi } from "../services/userService";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
 import Newsfeed from "./newsfeed";
 import SuggestionUser from "./suggestion_user";
 import { suggestionUserApi } from "../services/userService";
 import Following from "./following";
 import Savepost from "./savepost";
 import Profile from "./profile";
+import CreatePost from "./createPost";
+import PostContext from "../store/PostContext";
+import { setOpenPopup } from "../store/actions";
 
 const Home = () => {
-  const [imgpost, setImgpost] = useState("");
-  const [textpost, setTextpost] = useState("");
   const { user, logout } = useContext(UserContext);
-  // const [isLoadinfo, setIsloafinfo] = useState(true);
   const [listsugges, setListsugges] = useState([]);
   const [currentPage, setCurrenPage] = useState(1);
+  const [currentPost, dispatch] = useContext(PostContext);
+  const openpopup = currentPost.openPopup;
   const navigate = useNavigate();
 
-  const handleFileUpload = (e) => {
-    const fileimg = e.target.files[0];
-    uploadImageToStorage(fileimg)
-      .then((imageUrl) => {
-        setImgpost(imageUrl);
-      })
-      .catch((error) => {
-        console.error("Error handling file change:", error);
-      });
+  const handdelClickCreatePost = () => {
+    dispatch(setOpenPopup(true));
   };
 
-  const handlePost = async () => {
-    if (textpost === "" && imgpost === "") return;
-
-    try {
-      const res = await createPostApi(textpost, imgpost);
-      if (res && res.data && res.data.status === 200) {
-        setTextpost("");
-        remove_popup();
-        toast.success(res.data.message);
-      } else {
-        toast.error(res.data.message || "posted failed!");
-      }
-    } catch (error) {
-      console.error("An error occurred during login:", error);
-      toast.error("An error occurred during login. Please try again later.");
-    }
+  const closePopup = () => {
+    dispatch(setOpenPopup(false));
   };
-
   const handleLogout = () => {
     logout();
   };
@@ -68,9 +44,6 @@ const Home = () => {
       loadSuggestinUser();
     }
   }, [user]);
-  useEffect(() => {
-    console.log("currentPage", currentPage);
-  }, [currentPage]);
 
   const goToTop = () => {
     window.scrollTo({
@@ -80,193 +53,7 @@ const Home = () => {
   };
   return (
     <>
-      <div className="popup">
-        <div className="small-popup">
-          <div style={{ marginBottom: "10px", fontSize: "1.1em" }}>
-            <strong>Delete Post?</strong>
-          </div>
-          <div
-            className="grey"
-            style={{ fontSize: ".85em", marginBottom: "15px" }}
-          >
-            This can’t be undone and it will be removed from your profile, the
-            timeline of any accounts that follow you, and from Network search
-            results.
-          </div>
-          <div style={{ padding: "0px 5%" }}>
-            <button
-              className="btn btn-light float-left"
-              // onClick="remove_popup()"
-            >
-              Cancel
-            </button>
-            <button className="btn btn-danger float-right" id="delete_post_btn">
-              Delete
-            </button>
-          </div>
-        </div>
-        <div className="large-popup">
-          <div>
-            <div>
-              <div
-                className="small-profilepic"
-                style={{ backgroundImage: `url(${user.avata})` }}
-              ></div>
-            </div>
-            <div className="form-area">
-              <form
-                // action="/"
-                method="POST"
-                className="newpost"
-                encType="multipart/form-data"
-              >
-                <textarea
-                  name="text"
-                  autoFocus
-                  placeholder="What's happening?"
-                  rows="5"
-                  id="post-text"
-                  value={textpost}
-                  onChange={(event) => {
-                    setTextpost(event.target.value);
-                  }}
-                ></textarea>
-                <input type="hidden" id="img-change" value="false"></input>
-                <div id="img-div">
-                  <button id="del-img" type="button">
-                    <svg
-                      width="1.55em"
-                      height="1.55em"
-                      viewBox="0 0 24 24"
-                      className="r-jwli3a r-4qtqp9 r-yyyyoo r-1q142lx r-50lct3 r-dnmrzs r-bnwqim r-1plcrui r-lrvibr r-1srniue"
-                      fill="#fff"
-                    >
-                      <g>
-                        <path d="M13.414 12l5.793-5.793c.39-.39.39-1.023 0-1.414s-1.023-.39-1.414 0L12 10.586 6.207 4.793c-.39-.39-1.023-.39-1.414 0s-.39 1.023 0 1.414L10.586 12l-5.793 5.793c-.39.39-.39 1.023 0 1.414.195.195.45.293.707.293s.512-.098.707-.293L12 13.414l5.793 5.793c.195.195.45.293.707.293s.512-.098.707-.293c.39-.39.39-1.023 0-1.414L13.414 12z"></path>
-                      </g>
-                    </svg>
-                  </button>
-                  <img src={logo} id="spinner" height="70px" alt="" />
-                </div>
-                <hr />
-                <div className="form-action-btns">
-                  <div>
-                    <input
-                      name="picture"
-                      accept="image/jpeg,image/png,image/webp,image/gif"
-                      type="file"
-                      style={{ display: "none" }}
-                      id="insert-img"
-                      data-focusable="true"
-                      onChange={handleFileUpload}
-                    />
-                    <label
-                      htmlFor="insert-img"
-                      className="icon-btn form-icon-btn"
-                    >
-                      <svg
-                        width="1.1em"
-                        height="1.4em"
-                        viewBox="0 0 16 16"
-                        className="bi bi-image"
-                        fill="currentColor"
-                        xmlns="http://www.w3.org/2000/svg"
-                        style={{ marginLeft: "2px" }}
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M14.002 2h-12a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1zm-12-1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2h-12z"
-                        />
-                        <path d="M10.648 7.646a.5.5 0 0 1 .577-.093L15.002 9.5V14h-14v-2l2.646-2.354a.5.5 0 0 1 .63-.062l2.66 1.773 3.71-3.71z" />
-                        <path
-                          fillRule="evenodd"
-                          d="M4.502 7a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"
-                        />
-                      </svg>
-                      <span style={{ fontSize: "0.95em" }}>&nbsp;Photo</span>
-                    </label>
-                  </div>
-                  <div>
-                    <button
-                      className="btn btn-light float-right cancel-post"
-                      type="button"
-                      onClick={remove_popup}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      // type="submit"
-                      type="button"
-                      className="btn btn-success float-right submit-btn"
-                      onClick={handlePost}
-                    >
-                      Post
-                    </button>
-                  </div>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-        <div className="login-popup">
-          <div className="icon-btn">
-            <svg
-              width="1.6em"
-              height="1.6em"
-              viewBox="0 0 16 16"
-              className="bi bi-x"
-              fill="currentColor"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                fillRule="evenodd"
-                d="M11.854 4.146a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708-.708l7-7a.5.5 0 0 1 .708 0z"
-              />
-              <path
-                fillRule="evenodd"
-                d="M4.146 4.146a.5.5 0 0 0 0 .708l7 7a.5.5 0 0 0 .708-.708l-7-7a.5.5 0 0 0-.708 0z"
-              />
-            </svg>
-          </div>
-          <center>
-            <div className="icon-div">
-              <svg
-                width="2.5em"
-                height="2.5em"
-                viewBox="0 0 16 16"
-                className="bi bi-heart-fill"
-                fill="#e0245e"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"
-                />
-              </svg>
-            </div>
-            <div className="main_text-div">
-              <h2>tesst</h2>
-              <div className="grey">
-                Join Network today to connect with people you know.
-              </div>
-            </div>
-            <div className="btn-div">
-              <button
-                className="btn btn-success btn-block"
-                // onClick="goto_register()"
-              >
-                Sign Up
-              </button>
-              <button
-                className="btn btn-outline-success btn-block"
-                // onClick="goto_login()"
-              >
-                Login
-              </button>
-            </div>
-          </center>
-        </div>
-      </div>
+      {openpopup && <CreatePost user={user} />}
       <div className="body" data-page="{{page}}">
         <div className="sidenav">
           <a
@@ -492,18 +279,19 @@ const Home = () => {
                   )}
                 </ul>
               </div>
-              {/* {% if user.is_authenticated %} */}
               <button
                 id="popup-btn"
                 className="btn btn-success new-post-btn"
-                onClick={user && user.auth ? createpost : () => navigate("/")}
+                onClick={
+                  user && user.auth
+                    ? handdelClickCreatePost
+                    : () => navigate("/")
+                }
               >
                 Create Post
               </button>
-              {/* {% endif %} */}
             </div>
             <div style={{ position: "absolute", bottom: "10px" }}>
-              {/* {% if user.is_authenticated %}     */}
               <li className="nav-item sidenav-user">
                 <a
                   href="{% url 'profile' user.username %}"
@@ -530,17 +318,13 @@ const Home = () => {
                   </div>
                 </a>
               </li>
-              {/* {% endif %}
-                        {% if user.is_authenticated %} */}
               <input
                 type="hidden"
                 id="user_is_authenticated"
                 value="True"
                 data-username="{{user.username}}"
               />
-              {/* {% else %} */}
               <input type="hidden" id="user_is_authenticated" value="False" />
-              {/* {% endif %} */}
             </div>
           </div>
         </div>

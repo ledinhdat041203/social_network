@@ -45,7 +45,7 @@ function remove_popup() {
   large_popup.querySelector("#img-div").style.display = "none";
 }
 
-function previewFile() {
+function previewFile(ImgUrl) {
   document.querySelector("#img-div").style.display = "block";
   document.querySelector("#spinner").style.display = "block";
   document.querySelector("#del-img").style.display = "none";
@@ -55,10 +55,11 @@ function previewFile() {
   var reader = new FileReader();
 
   reader.onloadend = function () {
-    preview.style.backgroundImage = `url(${reader.result})`;
+    preview.style.backgroundImage = `url(${ImgUrl})`;
     document.querySelector(".large-popup").querySelector("#img-change").value =
       "true";
   };
+  if (ImgUrl) preview.style.backgroundImage = `url(${ImgUrl})`;
 
   if (file) {
     //reader.addEventListener('progress', (event) => {
@@ -103,4 +104,4 @@ function del_image() {
   }
 }
 
-export { createpost, remove_popup };
+export { createpost, remove_popup, previewFile };

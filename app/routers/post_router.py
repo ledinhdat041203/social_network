@@ -87,3 +87,13 @@ async def findSavePost(page: int, current_userid: str = Depends(get_current_user
         return {"message": "successfully", "data": data, "status": 200}
     else:
         return {"message": "Failed", "status": 400}
+@router.post("/eidtPost")
+async def updatePost(post_data: Post, current_userid: str = Depends(get_current_userid)):
+    if (post_service.checkUserPost(current_userid, post_data.id)):
+        data = post_service.updatePost(post_data)
+        if (data):
+            return {"message": "successfully", "data": data, "status": 200}
+        else:
+            return {"message": "Failed", "status": 400}
+    else: 
+        return {"message": "User not authenticated", "status": 401}
