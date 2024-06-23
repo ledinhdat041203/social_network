@@ -15,7 +15,7 @@ middleware_url = os.getenv("MIDDLEWARE_URL")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[middleware_url,  'http://localhost:3001'], 
+    allow_origins=middleware_url, 
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
