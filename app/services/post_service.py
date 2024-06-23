@@ -197,7 +197,7 @@ def updatePost(post):
                 "return p"
         try:
             result = session.run(query,id = post.id,text=post.text, imageUrl = post.imageURL)
-            return result.data()
+            return result.single()
         except Exception as e:
             print(e)
 

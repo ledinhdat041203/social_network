@@ -421,9 +421,9 @@ const Home = () => {
         <Following />
       ) : currentPage === 3 ? (
         <Savepost />
-      ) : (
+      ) : currentPage === 4 ? (
         <Profile user_id={user.id} />
-      )}
+      ) : null}
     </>
   );
 };

@@ -1,76 +1,88 @@
 import "../styles/style_Newsfeed.css";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import Post from "./post";
 import { findAllPostPageApi } from "../services/userService";
 import { UserContext } from "../store/UserContext";
 import { useContext } from "react";
+import { useStateListPost } from "../store/ListPostContext";
+import { addPostToListPost, setTitle } from "../store/actions";
 
 const Newsfeed = () => {
-  const [listpost, setListpost] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isfistLoading, setIsfistloading] = useState(false);
-  const [title, setTitle] = useState("All Posts");
+  const isfistLoading = useRef(true);
 
-  const currentPage = useRef(0);
+  const [currentTitle, listpost, listPostDispatch] = useStateListPost(
+    (state) => state.allPosts
+  );
+  const currentPage = useRef(Math.floor(listpost.length / 4));
   const { user } = useContext(UserContext);
+  const isApiBeingCalled = useRef(false);
 
-  const fetchData = async () => {
-    try {
-      setIsLoading(true);
-      console.log("find page: ", currentPage.current);
-      const res = await findAllPostPageApi(currentPage.current);
-      if (res && res.data.status === 200 && Array.isArray(res?.data?.data)) {
-        setListpost((prev) => [...prev, ...res?.data?.data]);
-        currentPage.current += 1;
-        setIsLoading(false);
-      } else {
-        window.removeEventListener("scroll", handleScroll);
+  const fetchData = useCallback(async () => {
+    if (!isApiBeingCalled.current && !isfistLoading.current) {
+      try {
+        console.log("load data");
+        isApiBeingCalled.current = true;
+        console.log("find page: ", currentPage.current);
+        const res = await findAllPostPageApi(currentPage.current);
+        if (res && res.data.status === 200 && Array.isArray(res?.data?.data)) {
+          listPostDispatch(addPostToListPost("allPosts", res?.data?.data));
+          currentPage.current += 1;
+        } else {
+          window.removeEventListener("scroll", handleScroll);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        isApiBeingCalled.current = false;
       }
-    } catch (error) {
-      console.error("Error fetching data:", error);
+    } else {
+      console.log("isfistLoading::", isfistLoading);
     }
-  };
-  const handleScroll = () => {
+  }, [currentTitle, listPostDispatch, listpost]);
+  const handleScroll = useCallback(() => {
     if (
       window.innerHeight + window.scrollY >= document.body.scrollHeight - 10 &&
-      !isLoading
+      !isApiBeingCalled.current
     ) {
-      // setIsLoading(true);
+      window.scrollTo({
+        top: document.body.scrollHeight - 20,
+        behavior: "smooth",
+      });
       fetchData();
       console.log("load");
     }
-  };
+  }, [currentTitle, listPostDispatch]);
   useEffect(() => {
+    if (!user || !user.auth) return;
     const loadFirstPage = async () => {
-      const res = await findAllPostPageApi(0);
-      if (Array.isArray(res?.data?.data)) {
-        setListpost(res?.data?.data);
-        currentPage.current += 1;
+      if (currentPage.current <= 0) {
+        currentPage.current = 0;
+        const res = await findAllPostPageApi(0);
+        if (Array.isArray(res?.data?.data)) {
+          listPostDispatch(addPostToListPost("allPosts", res?.data?.data));
+          currentPage.current += 1;
+          isfistLoading.current = false;
+          console.log("isfistLoading_effec::", isfistLoading);
+        }
       }
     };
-    if (!user || !user.auth) return;
-    setIsfistloading(true);
     loadFirstPage();
-    setIsfistloading(false);
+
     window.addEventListener("scroll", handleScroll);
     return () => {
       window.removeEventListener("scroll", handleScroll);
       console.log("remove");
     };
   }, [user]);
-
-  // useEffect(() => {
-  //   console.log("useEffect:", isLoading);
-  //   if (isLoading) {
-  //     fetchData();
-  //   }
-  // }, [isLoading]);
-
+  useEffect(() => {
+    listPostDispatch(setTitle("ALL POSTS"));
+    if (currentPage.current > 0) isfistLoading.current = false;
+  }, []);
   return (
     <>
       <div className="main-div">
         <div className="left-div">
-          <nav className="head heading">{title}</nav>
+          <nav className="head heading">{currentTitle}</nav>
           <div className="left-div-content">
             <div className="posts-view">
               <div className="main-div-content">
@@ -88,13 +100,20 @@ const Newsfeed = () => {
                     </div>
                   </center>
                 )}
-                {(isLoading || isfistLoading) && (
-                  <center>
+                {(isApiBeingCalled || isfistLoading) && (
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      height: "60px",
+                    }}
+                  >
                     <i
                       className="fa-solid fa-sync fa-spin"
-                      style={{ color: "green", fontSize: "1em" }}
+                      style={{ color: "green", fontSize: "2em" }}
                     ></i>
-                  </center>
+                  </div>
                 )}
               </div>
             </div>
