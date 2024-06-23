@@ -4,67 +4,75 @@ import Post from "./post";
 import { findMyPostApi } from "../services/userService";
 import { UserContext } from "../store/UserContext";
 import { useContext } from "react";
-
+import { useStateListPost } from "../store/ListPostContext";
+import { addPostToListPost, setTitle } from "../store/actions";
 const Myposts = () => {
-  const [listpost, setListpost] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isfistLoading, setIsfistloading] = useState(false);
+  const isfistLoading = useRef(true);
+  const [currentTitle, listpost, listPostDispatch] = useStateListPost(
+    (state) => state.myPosts
+  );
 
-  const currentPage = useRef(0);
+  const currentPage = useRef(Math.floor(listpost.length / 4));
   const { user } = useContext(UserContext);
+  const isApiBeingCalled = useRef(false);
 
   const fetchData = async () => {
-    try {
-      setIsLoading(true);
-      console.log("find page: ", currentPage.current);
-      const res = await findMyPostApi(currentPage.current);
-      // console.log(Array.isArray(res?.data?.data));
-      if (res && res.data.status === 200 && Array.isArray(res?.data?.data)) {
-        setListpost((prev) => [...prev, ...res?.data?.data]);
-        currentPage.current += 1;
-        setIsLoading(false);
-      } else {
-        window.removeEventListener("scroll", handleScroll);
+    if (!isApiBeingCalled.current && !isfistLoading.current) {
+      try {
+        isApiBeingCalled.current = true;
+        console.log("find page: ", currentPage.current);
+        const res = await findMyPostApi(currentPage.current);
+        if (res && res.data.status === 200 && Array.isArray(res?.data?.data)) {
+          listPostDispatch(addPostToListPost("myPosts", res?.data?.data));
+          currentPage.current += 1;
+        } else {
+          window.removeEventListener("scroll", handleScroll);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        isApiBeingCalled.current = false;
       }
-    } catch (error) {
-      console.error("Error fetching data:", error);
     }
   };
   const handleScroll = () => {
     if (
       window.innerHeight + window.scrollY >= document.body.scrollHeight - 10 &&
-      !isLoading
+      !isApiBeingCalled.current
     ) {
-      // setIsLoading(true);
+      window.scrollTo({
+        top: document.body.scrollHeight - 20,
+        behavior: "smooth",
+      });
       fetchData();
       console.log("load");
     }
   };
   useEffect(() => {
+    if (!user || !user.auth) return;
     const loadFirstPage = async () => {
       const res = await findMyPostApi(0);
       if (Array.isArray(res?.data?.data)) {
-        setListpost(res?.data?.data);
+        listPostDispatch(addPostToListPost("myPosts", res?.data?.data));
         currentPage.current += 1;
+        isfistLoading.current = false;
       }
     };
-    if (!user || !user.auth) return;
-    setIsfistloading(true);
     loadFirstPage();
-    setIsfistloading(false);
     window.addEventListener("scroll", handleScroll);
     return () => {
       window.removeEventListener("scroll", handleScroll);
       console.log("remove");
     };
   }, [user]);
-
+  useEffect(() => {
+    listPostDispatch(setTitle("PROFILE"));
+  }, []);
   return (
     <>
       <div className="left-div">
         <div className="left-div-content">
           <div className="posts-view">
-            {/* {% block profile %} {% endblock %} */}
             <div className="main-div-content">
               {listpost.map((post, index) => {
                 return <Post key={post.id} {...post} />;
@@ -80,7 +88,7 @@ const Myposts = () => {
                   </div>
                 </center>
               )}
-              {(isLoading || isfistLoading) && (
+              {(isApiBeingCalled || isfistLoading) && (
                 <center>
                   <i
                     className="fa-solid fa-sync fa-spin"

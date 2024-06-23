@@ -1,4 +1,4 @@
-import { act, createContext } from "react";
+import { createContext } from "react";
 import { useReducer } from "react";
 import {
   SET_OPEN_POPUP,

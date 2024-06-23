@@ -12,10 +12,14 @@ import {
   setImgPost,
   setOpenPopup,
   setEditPost,
+  updatePost as updatePostReducer,
 } from "../store/actions";
+import ListPostContext from "../store/ListPostContext";
 
 const CreatePost = ({ user }) => {
   const [currentPost, dispatch] = useContext(PostContext);
+  const [listsPosts, listspostsDispatch] = useContext(ListPostContext);
+
   const imgpost = currentPost.imgpost;
   const textpost = currentPost.textpost;
   const isEdit = currentPost.isEdit;
@@ -48,10 +52,10 @@ const CreatePost = ({ user }) => {
       toast.error("An error occurred during login. Please try again later.");
     }
   };
-
+  const updatePost = (newpost) => {
+    listspostsDispatch(updatePostReducer(newpost));
+  };
   const handleEditPost = async () => {
-    console.log("userid:: ", user.id);
-    console.log("postid:: ", id);
     if (textpost === "" && imgpost === "") return;
     try {
       const res = await editPostAPI(id, textpost, imgpost);
@@ -60,6 +64,7 @@ const CreatePost = ({ user }) => {
         dispatch(setImgPost(""));
         dispatch(setEditPost(false));
         dispatch(setOpenPopup(false));
+        updatePost(res.data.data[0]);
         toast.success(res.data.message);
       } else {
         toast.error(res.data.message || "editted failed!");
